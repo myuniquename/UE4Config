@@ -244,6 +244,37 @@ namespace UE4Config.Parsing
         {
             ReadLine(line, LineEnding.None, ref currentSection);
         }
+        
+        /// <summary>
+        /// Appends raw text parsed as <see cref="ConfigIni"/> into this one.
+        /// </summary>
+        public void AppendRawText(string text)
+        {
+            AppendRawText(new StringReader(text));
+        }
+        
+        /// <summary>
+        /// Appends raw text parsed as <see cref="ConfigIni"/> into this one.
+        /// </summary>
+        public void AppendRawText(TextReader textReader)
+        {
+            var config = new ConfigIni();
+            config.Read(textReader);
+            AppendCloneOf(config);
+        }
+
+        /// <summary>
+        /// Appends the contents of another <see cref="ConfigIni"/> into this one.
+        /// Sections and tokens will be cloned before appending so the other stays usable.
+        /// </summary>
+        public void AppendCloneOf(ConfigIni other)
+        {
+            foreach (var otherSection in other.Sections)
+            {
+                var section = ConfigIniSection.Clone(otherSection);
+                this.Sections.Add(section);
+            }
+        }
 
         /// <summary>
         /// Writes the whole config to a text blob
@@ -270,7 +301,8 @@ namespace UE4Config.Parsing
 
         /// <summary>
         /// Merges together <see cref="Sections"/> that share a <see cref="ConfigIniSection.Name"/>.
-        /// <see cref="ConfigIniSection.Tokens"/> will be merge din order of the sections
+        /// <see cref="Sections"/> will be order in order of appearance of the first section of their name.
+        /// <see cref="ConfigIniSection.Tokens"/> will be merged in by simply appending their appearances.
         /// </summary>
         public void MergeDuplicateSections()
         {
@@ -287,6 +319,87 @@ namespace UE4Config.Parsing
                         j--;
                     }
                 }
+            }
+        }
+        
+        /// <summary>
+        /// Iterates through all <see cref="Sections"/> and Groups together instruction tokens,
+        /// keeping their order of declaration intact
+        /// </summary>
+        public void GroupPropertyInstructions()
+        {
+            for (int i = 0; i < Sections.Count; i++)
+            {
+                var pivotSection = Sections[i];
+                pivotSection.GroupPropertyInstructions();
+            }
+        }
+
+        /// <summary>
+        /// Condenses all whitespace to a maximum one newline.
+        /// <seealso cref="WhitespaceToken.Condense()"/>.
+        /// Will delete whitespace tokens directly following other whitespace tokens.
+        /// </summary>
+        public void CondenseWhitespace()
+        {
+            for (int i = 0; i < Sections.Count; i++)
+            {
+                var pivotSection = Sections[i];
+                pivotSection.MergeConsecutiveTokens();
+                pivotSection.CondenseWhitespace();
+            }
+        }
+
+        /// <summary>
+        /// Automatically detects the line ending this config uses, based on the first encounter
+        /// of a specified line ending.
+        /// Used for <seealso cref="NormalizeLineEndings()"/>
+        /// </summary>
+        public LineEnding AutoDetectLineEnding()
+        {
+            foreach (var section in Sections)
+            {
+                if (section.LineEnding != LineEnding.Unknown)
+                    return section.LineEnding;
+
+                foreach (var token in section.Tokens)
+                {
+                    if (token is LineToken lineToken)
+                    {
+                        if (lineToken.LineEnding != LineEnding.Unknown)
+                            return lineToken.LineEnding;
+                    }
+
+                    if (token is MultilineToken multilineToken)
+                    {
+                        foreach (var line in multilineToken.Lines)
+                        {
+                            if (line.LineEnding != LineEnding.Unknown)
+                                return line.LineEnding;
+                        }
+                    }
+                }
+            }
+            return LineEnding.Unknown;
+        }
+
+        /// <summary>
+        /// Makes sure all lined use the same line ending, detected automatically via <seealso cref="AutoDetectLineEnding"/>
+        /// </summary>
+        public void NormalizeLineEndings()
+        {
+            NormalizeLineEndings(AutoDetectLineEnding());
+        }
+
+        /// <summary>
+        /// Makes sure all lined use the same, given line ending
+        /// </summary>
+        public void NormalizeLineEndings(LineEnding lineEnding)
+        {
+            for (int i = 0; i < Sections.Count; i++)
+            {
+                var pivotSection = Sections[i];
+                pivotSection.NormalizeLineEndings(lineEnding);
             }
         }
     }

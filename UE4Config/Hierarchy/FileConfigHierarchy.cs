@@ -55,6 +55,23 @@ namespace UE4Config.Hierarchy
             return config;
         }
 
+        public override void PublishConfig(string platform, string category, ConfigHierarchyLevel level, ConfigIni config)
+        {
+            CacheConfig(platform, category, level, config);
+            SaveConfig(platform, category, level, config);
+        }
+
+        public override ConfigIni CreateConfig(string platform, string category, ConfigHierarchyLevel level)
+        {
+            var filePath = GetConfigFilePath(platform, category, level);
+            if (filePath == null)
+                return null;
+
+            ConfigIni config = new ConfigIni(filePath);
+            CacheConfig(platform, category, level, config);
+            return config;
+        }
+
         public override bool CheckEngineHasPlatformExtension(string platform)
         {
             string expectedPath = GenerateEnginePlatformExtensionConfigDirPath(platform);
@@ -147,6 +164,16 @@ namespace UE4Config.Hierarchy
             config.Read(reader);
             reader.Close();
             return config;
+        }
+
+        protected virtual void SaveConfig(string platform, string category, ConfigHierarchyLevel level, ConfigIni config)
+        {
+            var filePath = GetConfigFilePath(platform, category, level);
+            FileStream fileStream;
+            fileStream = File.OpenWrite(filePath);
+            StreamWriter writer = new StreamWriter(fileStream);
+            config.Write(writer);
+            writer.Close();
         }
 
         protected virtual void CacheConfig(string platform, string category, ConfigHierarchyLevel level, ConfigIni config)

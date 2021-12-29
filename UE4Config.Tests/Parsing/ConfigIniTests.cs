@@ -625,6 +625,396 @@ namespace UE4Config.Tests.Parsing
             }
         }
 
+
+        [TestFixture]
+        class CondenseWhitespace
+        {
+
+            [Test]
+            public void When_HasNothingToCondense()
+            {
+                var sectionA1 = new ConfigIniSection("A");
+                var tokenA1_1 = new TextToken();
+                var tokenA1_2 = new TextToken();
+                var tokenA1_3 = new TextToken();
+                sectionA1.Tokens.Add(tokenA1_1);
+                sectionA1.Tokens.Add(tokenA1_2);
+                sectionA1.Tokens.Add(tokenA1_3);
+
+                var config = new ConfigIni();
+                config.Sections.Add(sectionA1);
+
+                config.CondenseWhitespace();
+
+                Assert.That(config.Sections, Is.EquivalentTo(new[] { sectionA1 }));
+                Assert.That(sectionA1.Tokens, Is.EquivalentTo(new[] { tokenA1_1, tokenA1_2, tokenA1_3 }));
+            }
+
+            [Test]
+            public void When_HasWhitespaceToCondense()
+            {
+                var sectionA1 = new ConfigIniSection("A");
+                var tokenA1_1 = new TextToken();
+                var tokenA1_2_WS = new WhitespaceToken(new List<string>(new []{"   "}), LineEnding.None);
+                var tokenA1_3 = new TextToken();
+                sectionA1.Tokens.Add(tokenA1_1);
+                sectionA1.Tokens.Add(tokenA1_2_WS);
+                sectionA1.Tokens.Add(tokenA1_3);
+
+                var config = new ConfigIni();
+                config.Sections.Add(sectionA1);
+
+                config.CondenseWhitespace();
+
+                Assert.That(config.Sections, Is.EquivalentTo(new[] { sectionA1 }));
+                Assert.That(sectionA1.Tokens, Is.EquivalentTo(new IniToken[] { tokenA1_1, tokenA1_2_WS, tokenA1_3 }));
+                Assert.That(tokenA1_2_WS.Lines, Is.EquivalentTo(new TextLine[]{String.Empty}));
+            }
+
+            [Test]
+            public void When_HasConsecutiveWhitespaceToCondense()
+            {
+                var sectionA1 = new ConfigIniSection("A");
+                var tokenA1_1 = new TextToken();
+                var tokenA1_2_WS = new WhitespaceToken(new List<string>(new[] { "   " }), LineEnding.None);
+                var tokenA1_3_WS = new WhitespaceToken(new List<string>(new[] { "   " }), LineEnding.None);
+                var tokenA1_4_WS = new WhitespaceToken(new List<string>(new[] { "   " }), LineEnding.None);
+                var tokenA1_5 = new TextToken();
+                sectionA1.Tokens.Add(tokenA1_1);
+                sectionA1.Tokens.Add(tokenA1_2_WS);
+                sectionA1.Tokens.Add(tokenA1_3_WS);
+                sectionA1.Tokens.Add(tokenA1_4_WS);
+                sectionA1.Tokens.Add(tokenA1_5);
+
+                var config = new ConfigIni();
+                config.Sections.Add(sectionA1);
+
+                config.CondenseWhitespace();
+
+                Assert.That(config.Sections, Is.EquivalentTo(new[] { sectionA1 }));
+                Assert.That(sectionA1.Tokens, Is.EquivalentTo(new IniToken[] { tokenA1_1, tokenA1_2_WS, tokenA1_5 }));
+                Assert.That(tokenA1_2_WS.Lines, Is.EquivalentTo(new TextLine[] { String.Empty }));
+            }
+
+            [Test]
+            public void When_HasMultipleWhitespaceToCondense()
+            {
+                var sectionA1 = new ConfigIniSection("A");
+                var tokenA1_1 = new TextToken();
+                var tokenA1_2_WS = new WhitespaceToken(new List<string>(new[] { "   " }), LineEnding.None);
+                var tokenA1_3 = new TextToken();
+                var tokenA1_4_WS = new WhitespaceToken(new List<string>(new[] { "   " }), LineEnding.None);
+                var tokenA1_5 = new TextToken();
+                sectionA1.Tokens.Add(tokenA1_1);
+                sectionA1.Tokens.Add(tokenA1_2_WS);
+                sectionA1.Tokens.Add(tokenA1_3);
+                sectionA1.Tokens.Add(tokenA1_4_WS);
+                sectionA1.Tokens.Add(tokenA1_5);
+
+                var config = new ConfigIni();
+                config.Sections.Add(sectionA1);
+
+                config.CondenseWhitespace();
+
+                Assert.That(config.Sections, Is.EquivalentTo(new[] { sectionA1 }));
+                Assert.That(sectionA1.Tokens, Is.EquivalentTo(new IniToken[] { tokenA1_1, tokenA1_2_WS, tokenA1_3, tokenA1_4_WS, tokenA1_5 }));
+                Assert.That(tokenA1_2_WS.Lines, Is.EquivalentTo(new TextLine[] { String.Empty }));
+                Assert.That(tokenA1_4_WS.Lines, Is.EquivalentTo(new TextLine[] { String.Empty }));
+            }
+        }
+
+        [TestFixture]
+        class NormalizeLineEndings
+        {
+            [TestCase(LineEnding.None)]
+            [TestCase(LineEnding.Unix)]
+            [TestCase(LineEnding.Mac)]
+            [TestCase(LineEnding.Windows)]
+            [TestCase(LineEnding.Unknown)]
+            public void When_ChangingToSpecificLineEndingOnMultipleSections(LineEnding targetLineEnding)
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                sectionA1.LineEnding = LineEnding.Mac;
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA", LineEnding.Windows);
+                var tokenA2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.None);
+                var tokenA3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Unix);
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                sectionB1.LineEnding = LineEnding.Unix;
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB", LineEnding.Unknown);
+                var tokenB2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.Windows);
+                var tokenB3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Mac);
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings(targetLineEnding);
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(targetLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(targetLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(targetLineEnding));
+            }
+
+
+            [TestCase(LineEnding.Unix)]
+            [TestCase(LineEnding.Mac)]
+            [TestCase(LineEnding.Windows)]
+            public void When_ChangingToAutoDetectedLineEnding_FirstSectionHeader(LineEnding expectedLineEnding)
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                sectionA1.LineEnding = expectedLineEnding; //LineEnding on Header of first section is expected to be used
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA", LineEnding.Windows);
+                var tokenA2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.None);
+                var tokenA3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Unix);
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                sectionB1.LineEnding = LineEnding.Unix;
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB", LineEnding.Unknown);
+                var tokenB2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.Windows);
+                var tokenB3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Mac);
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings();
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+            }
+
+            [TestCase(LineEnding.Unix)]
+            [TestCase(LineEnding.Mac)]
+            [TestCase(LineEnding.Windows)]
+            public void When_ChangingToAutoDetectedLineEnding_FirstInstructionToken(LineEnding expectedLineEnding)
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA", expectedLineEnding);
+                var tokenA2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.None);
+                var tokenA3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Unix);
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                sectionB1.LineEnding = LineEnding.Unix;
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB", LineEnding.Unknown);
+                var tokenB2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.Windows);
+                var tokenB3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Mac);
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings();
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+            }
+
+            [TestCase(LineEnding.Unix)]
+            [TestCase(LineEnding.Mac)]
+            [TestCase(LineEnding.Windows)]
+            public void When_ChangingToAutoDetectedLineEnding_FirstWhitespaceToken(LineEnding expectedLineEnding)
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA");
+                var tokenA2 = new WhitespaceToken(new[] { " \t\t", " " }, expectedLineEnding);
+                var tokenA3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Unix);
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                sectionB1.LineEnding = LineEnding.Unix;
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB", LineEnding.Unknown);
+                var tokenB2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.Windows);
+                var tokenB3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Mac);
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings();
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+            }
+
+            [TestCase(LineEnding.Unix)]
+            [TestCase(LineEnding.Mac)]
+            [TestCase(LineEnding.Windows)]
+            public void When_ChangingToAutoDetectedLineEnding_FirstWhitespaceTokenSecondLine(LineEnding expectedLineEnding)
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA");
+                var tokenA2 = new WhitespaceToken();
+                tokenA2.AddLine("\t\t");
+                tokenA2.AddLine(" ", expectedLineEnding); // First time a line ending would be found
+                tokenA2.AddLine(" ");
+                var tokenA3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Unix);
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                sectionB1.LineEnding = LineEnding.Unix;
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB", LineEnding.Unknown);
+                var tokenB2 = new WhitespaceToken(new[] { " \t\t", " " }, LineEnding.Windows);
+                var tokenB3 = new CommentToken(new[] { ";Baz", "OO" }, LineEnding.Mac);
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings();
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+            }
+
+            [Test]
+            public void When_ChangingToAutoDetectedLineEnding_NoKnownLineEndings()
+            {
+                var config = new ConfigIni();
+
+                var sectionA1 = new ConfigIniSection("A1");
+                var tokenA1 = new InstructionToken(InstructionType.Add, "InstA");
+                var tokenA2 = new WhitespaceToken();
+                tokenA2.AddLine("\t\t");
+                tokenA2.AddLine(" ");
+                tokenA2.AddLine(" ");
+                var tokenA3 = new CommentToken();
+                tokenA3.AddLine(";Baz");
+                tokenA3.AddLine("OO");
+                sectionA1.Tokens.Add(tokenA1);
+                sectionA1.Tokens.Add(tokenA2);
+                sectionA1.Tokens.Add(tokenA3);
+                config.Sections.Add(sectionA1);
+
+
+                var sectionB1 = new ConfigIniSection("B1");
+                var tokenB1 = new InstructionToken(InstructionType.Add, "InstB");
+                var tokenB2 = new WhitespaceToken();
+                tokenB2.AddLine("\t\t");
+                tokenB2.AddLine(" ");
+                var tokenB3 = new CommentToken();
+                tokenB3.AddLine(";Baz");
+                tokenB3.AddLine("OO");
+                sectionB1.Tokens.Add(tokenB1);
+                sectionB1.Tokens.Add(tokenB2);
+                sectionB1.Tokens.Add(tokenB3);
+                config.Sections.Add(sectionB1);
+
+                config.NormalizeLineEndings();
+
+                var expectedLineEnding = LineEnding.Unknown;
+
+                Assert.That(sectionA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenA3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+
+                Assert.That(sectionB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB1.LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB2.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[0].LineEnding, Is.EqualTo(expectedLineEnding));
+                Assert.That(tokenB3.Lines[1].LineEnding, Is.EqualTo(expectedLineEnding));
+            }
+
+            [Test]
+            public void When_ChangingToAutoDetectedLineEnding_EmptyIni()
+            {
+                var config = new ConfigIni();
+
+                Assert.That(() => {config.NormalizeLineEndings();}, Throws.Nothing);
+            }
+        }
+
         [TestFixture]
         public class Write
         {
