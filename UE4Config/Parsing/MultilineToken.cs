@@ -43,7 +43,7 @@ namespace UE4Config.Parsing
 
         public override IniToken CreateClone()
         {
-            var clone = base.CreateClone() as MultilineToken;
+            var clone = (MultilineToken)base.CreateClone();
             clone.Lines.AddRange(Lines);
             return clone;
         }

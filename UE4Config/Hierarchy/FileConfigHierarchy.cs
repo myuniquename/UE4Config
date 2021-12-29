@@ -61,7 +61,7 @@ namespace UE4Config.Hierarchy
             SaveConfig(platform, category, level, config);
         }
 
-        public override ConfigIni CreateConfig(string platform, string category, ConfigHierarchyLevel level)
+        public override ConfigIni? CreateConfig(string platform, string category, ConfigHierarchyLevel level)
         {
             var filePath = GetConfigFilePath(platform, category, level);
             if (filePath == null)
@@ -168,7 +168,11 @@ namespace UE4Config.Hierarchy
 
         protected virtual void SaveConfig(string platform, string category, ConfigHierarchyLevel level, ConfigIni config)
         {
-            var filePath = GetConfigFilePath(platform, category, level);
+            string? filePath = GetConfigFilePath(platform, category, level);
+            if (String.IsNullOrEmpty(filePath))
+            {
+                return;
+            }
             FileStream fileStream;
             fileStream = File.OpenWrite(filePath);
             StreamWriter writer = new StreamWriter(fileStream);

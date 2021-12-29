@@ -13,7 +13,7 @@
 
         public override IniToken CreateClone()
         {
-            var clone = base.CreateClone() as LineToken;
+            var clone = (LineToken)base.CreateClone()!;
             clone.LineEnding = LineEnding;
             return clone;
         }

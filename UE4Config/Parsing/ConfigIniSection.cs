@@ -21,7 +21,7 @@ namespace UE4Config.Parsing
 
         public ConfigIniSection() { }
 
-        public ConfigIniSection(string name)
+        public ConfigIniSection(string? name)
         {
             Name = name;
         }
@@ -34,7 +34,7 @@ namespace UE4Config.Parsing
             }
         }
 
-        public ConfigIniSection(string name, IEnumerable<IniToken> tokens)
+        public ConfigIniSection(string? name, IEnumerable<IniToken> tokens)
         {
             Name = name;
             if (tokens != null)
@@ -96,6 +96,11 @@ namespace UE4Config.Parsing
                 var token = Tokens[i];
                 if (token is InstructionToken instruction)
                 {
+                    if(String.IsNullOrEmpty(instruction.Key))
+                    {
+                        continue;
+                    }
+
                     FindPropertyInstructionGroup(instruction.Key, out _, out int lastIndex);
                     if (lastIndex < i)
                     {
@@ -110,7 +115,7 @@ namespace UE4Config.Parsing
         {
             indexOfFirstInstruction = -1;
             indexOfLastInstruction = -1;
-            bool hasGroup = false;
+
             for (int i = 0; i < Tokens.Count; i++)
             {
                 var token = Tokens[i];

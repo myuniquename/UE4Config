@@ -15,7 +15,7 @@ namespace UE4Config.Parsing
         /// </summary>
         public virtual IniToken CreateClone()
         {
-            return (IniToken)Activator.CreateInstance(GetType());
+            return (IniToken)Activator.CreateInstance(GetType())!;
         }
     }
 }

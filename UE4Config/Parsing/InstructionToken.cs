@@ -33,7 +33,7 @@ namespace UE4Config.Parsing
 
         public override IniToken CreateClone()
         {
-            var clone = base.CreateClone() as InstructionToken;
+            var clone = (InstructionToken)base.CreateClone();
             clone.InstructionType = InstructionType;
             clone.Key = Key;
             clone.Value = Value;

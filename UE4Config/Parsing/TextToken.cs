@@ -18,7 +18,7 @@ namespace UE4Config.Parsing
 
         public override IniToken CreateClone()
         {
-            var clone = base.CreateClone() as TextToken;
+            var clone = (TextToken)base.CreateClone();
             clone.Text = Text;
             return clone;
         }
