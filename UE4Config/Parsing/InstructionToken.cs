@@ -1,16 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace UE4Config.Parsing
 {
     public class InstructionToken : LineToken
     {
         public InstructionType InstructionType;
-        public string Key;
-        public string Value;
+        public string? Key = null;
+        public string? Value = null;
 
         public InstructionToken() { }
 
-        public InstructionToken(InstructionType type, string key, string value = null)
+        public InstructionToken(InstructionType type, string key, string? value = null)
         {
             InstructionType = type;
             Key = key;

@@ -36,13 +36,16 @@ namespace UE4Config.Hierarchy
             ProjectPath = projectPath;
         }
 
-        public override ConfigIni GetConfig(string platform, string category, ConfigHierarchyLevel level)
+        public override ConfigIni? GetConfig(string platform, string category, ConfigHierarchyLevel level)
         {
-            ConfigIni config = null;
+            ConfigIni? config = null;
             if (!IsConfigCached(platform, category, level))
             {
                 config = LoadConfig(platform, category, level);
-                CacheConfig(platform, category, level, config);
+                if (config is not null)
+                {
+                    CacheConfig(platform, category, level, config);
+                }
             }
             else
             {
@@ -67,7 +70,7 @@ namespace UE4Config.Hierarchy
         /// <summary>
         /// Constructs the file path that would lead to the requested config file
         /// </summary>
-        public virtual string GetConfigFilePath(string platform, string category, ConfigHierarchyLevel level)
+        public virtual string? GetConfigFilePath(string platform, string category, ConfigHierarchyLevel level)
         {
             switch (level)
             {
@@ -121,9 +124,9 @@ namespace UE4Config.Hierarchy
         /// <summary>
         /// Load config from filesystem
         /// </summary>
-        protected virtual ConfigIni LoadConfig(string platform, string category, ConfigHierarchyLevel level)
+        protected virtual ConfigIni? LoadConfig(string platform, string category, ConfigHierarchyLevel level)
         {
-            var filePath = GetConfigFilePath(platform, category, level);
+            string? filePath = GetConfigFilePath(platform, category, level);
             if (filePath == null)
                 return null;
 
@@ -152,10 +155,9 @@ namespace UE4Config.Hierarchy
             m_ConfigCache[key] = config;
         }
 
-        protected virtual ConfigIni GetCachedConfig(string platform, string category, ConfigHierarchyLevel level)
+        protected virtual ConfigIni? GetCachedConfig(string platform, string category, ConfigHierarchyLevel level)
         {
-            ConfigIni result;
-            if (m_ConfigCache.TryGetValue(new ConfigKey(platform, category, level), out result))
+            if (m_ConfigCache.TryGetValue(new ConfigKey(platform, category, level), out ConfigIni? result))
             {
                 return result;
             }

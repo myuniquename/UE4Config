@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace UE4Config.Parsing
 {
@@ -7,7 +8,7 @@ namespace UE4Config.Parsing
     /// </summary>
     public class TextToken : LineToken
     {
-        public string Text;
+        public string Text = String.Empty;
 
         public override void Write(TextWriter writer)
         {

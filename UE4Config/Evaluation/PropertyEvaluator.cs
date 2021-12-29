@@ -35,9 +35,9 @@ namespace UE4Config.Evaluation
             m_Default = null;
         }
 
-        private static PropertyEvaluator m_Default;
+        private static PropertyEvaluator? m_Default;
 
-        public static PropertyEvaluator CustomOrDefault(PropertyEvaluator customPick = null)
+        public static PropertyEvaluator CustomOrDefault(PropertyEvaluator? customPick = null)
         {
             return customPick != null ? customPick : Default;
         }
@@ -48,7 +48,7 @@ namespace UE4Config.Evaluation
         /// </summary>
         /// <param name="instructions">Queue of instructions to be executed</param>
         /// <param name="propertyValues">The values of the property the instructions will be executed for. Will be modified by execution.</param>
-        public void ExecutePropertyInstructions(IList<InstructionToken> instructions, IList<string> propertyValues)
+        public void ExecutePropertyInstructions(IList<InstructionToken> instructions, IList<string?> propertyValues)
         {
             foreach (var instruction in instructions)
             {
@@ -64,7 +64,7 @@ namespace UE4Config.Evaluation
         /// </summary>
         /// <param name="instruction">The instruction to be executed</param>
         /// <param name="propertyValues">The values of the property the instruction will be executed for. Will be modified by execution.</param>
-        public void ExecutePropertyInstruction(InstructionToken instruction, IList<string> propertyValues)
+        public void ExecutePropertyInstruction(InstructionToken instruction, IList<string?> propertyValues)
         {
             switch (instruction.InstructionType)
             {
@@ -108,7 +108,7 @@ namespace UE4Config.Evaluation
         /// <param name="instructions">Cache for the list of instructions regarding this property. Will be added in order of declaration, the latest one being last</param>
         /// <param name="values">Resulting list of values, possibly empty if the property was deleted</param>
         public void EvaluatePropertyValues(IEnumerable<ConfigIni> configs, string sectionName, string propertyKey,
-            IList<InstructionToken> instructions, IList<string> values)
+            IList<InstructionToken> instructions, IList<string?> values)
         {
             foreach (var configIni in configs)
             {
@@ -117,19 +117,19 @@ namespace UE4Config.Evaluation
             ExecutePropertyInstructions(instructions, values);
         }
 
-        public void EvaluatePropertyValues(IEnumerable<ConfigIni> configs, string sectionName, string propertyKey, IList<string> values)
+        public void EvaluatePropertyValues(IEnumerable<ConfigIni> configs, string sectionName, string propertyKey, IList<string?> values)
         {
             EvaluatePropertyValues(configs, sectionName, propertyKey, new List<InstructionToken>(), values);
         }
 
         public void EvaluatePropertyValues(ConfigIni config, string sectionName, string propertyKey,
-            IList<InstructionToken> instructions, IList<string> values)
+            IList<InstructionToken> instructions, IList<string?> values)
         {
             config.FindPropertyInstructions(sectionName, propertyKey, instructions);
             ExecutePropertyInstructions(instructions, values);
         }
 
-        public void EvaluatePropertyValues(ConfigIni configs, string sectionName, string propertyKey, IList<string> values)
+        public void EvaluatePropertyValues(ConfigIni configs, string sectionName, string propertyKey, IList<string?> values)
         {
             EvaluatePropertyValues(configs, sectionName, propertyKey, new List<InstructionToken>(), values);
         }

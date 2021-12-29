@@ -32,14 +32,14 @@ namespace UE4Config.Hierarchy
         /// Returns the platform config of the given <see cref="category"/> and the given <see cref="level"/>, if available.
         /// Returns null otherwise.
         /// </summary>
-        public abstract ConfigIni GetConfig(string platform, string category, ConfigHierarchyLevel level);
+        public abstract ConfigIni? GetConfig(string platform, string category, ConfigHierarchyLevel level);
 
         /// <summary>
         /// Returns the default config of the given <see cref="category"/> and the given <see cref="level"/>, if available.
         /// Returns null otherwise.
         /// <seealso cref="GetConfig(string,string,UE4Config.Hierarchy.ConfigHierarchyLevel)"/>
         /// </summary>
-        public ConfigIni GetConfig(string category, ConfigHierarchyLevel level)
+        public ConfigIni? GetConfig(string category, ConfigHierarchyLevel level)
         {
             return GetConfig(DefaultPlatform, category, level);
         }
@@ -54,7 +54,7 @@ namespace UE4Config.Hierarchy
             {
                 if (range.Includes(level))
                 {
-                    ConfigIni config = GetConfig(platform, category, level);
+                    ConfigIni? config = GetConfig(platform, category, level);
                     if (config != null)
                     {
                         configs.Add(config);
@@ -86,7 +86,7 @@ namespace UE4Config.Hierarchy
         /// Evaluates a properties values over this hierarchy of configs.
         /// </summary>
         public virtual void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range,
-            PropertyEvaluator evaluator, IList<string> values)
+            PropertyEvaluator evaluator, IList<string?> values)
         {
             List<ConfigIni> configs = new List<ConfigIni>();
             GetConfigs(platform, category, range, configs);
@@ -95,7 +95,7 @@ namespace UE4Config.Hierarchy
         }
 
         /// <inheritdoc cref="EvaluatePropertyValues(string,string,string,string,ConfigHierarchyLevelRange,UE4Config.Evaluation.PropertyEvaluator,System.Collections.Generic.IList{string})"/>
-        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, PropertyEvaluator evaluator, IList<string> values)
+        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, PropertyEvaluator evaluator, IList<string?> values)
         {
             EvaluatePropertyValues(platform, category, sectionName, propertyKey, ConfigHierarchyLevelRange.All(),
                 evaluator, values);
@@ -105,7 +105,7 @@ namespace UE4Config.Hierarchy
         /// <remarks>
         /// Uses <see cref="PropertyEvaluator.Default"/> as evaluator
         /// </remarks>
-        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, IList<string> values)
+        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, IList<string?> values)
         {
             EvaluatePropertyValues(platform, category, sectionName, propertyKey, range, PropertyEvaluator.Default, values);
         }
@@ -114,7 +114,7 @@ namespace UE4Config.Hierarchy
         /// <remarks>
         /// Uses <see cref="PropertyEvaluator.Default"/> as evaluator
         /// </remarks>
-        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, IList<string> values)
+        public void EvaluatePropertyValues(string platform, string category, string sectionName, string propertyKey, IList<string?> values)
         {
             EvaluatePropertyValues(platform, category, sectionName, propertyKey, ConfigHierarchyLevelRange.All(), values);
         }
@@ -124,7 +124,7 @@ namespace UE4Config.Hierarchy
         /// Uses "Default" platform
         /// Uses <see cref="PropertyEvaluator.Default"/> as evaluator
         /// </remarks>
-        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, IList<string> values)
+        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, IList<string?> values)
         {
             EvaluatePropertyValues(DefaultPlatform, category, sectionName, propertyKey, range, PropertyEvaluator.Default, values);
         }
@@ -134,7 +134,7 @@ namespace UE4Config.Hierarchy
         /// Uses "Default" platform
         /// Uses <see cref="PropertyEvaluator.Default"/> as evaluator
         /// </remarks>
-        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, IList<string> values)
+        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, IList<string?> values)
         {
             EvaluatePropertyValues(category, sectionName, propertyKey, ConfigHierarchyLevelRange.All(), values);
         }
@@ -143,7 +143,7 @@ namespace UE4Config.Hierarchy
         /// <remarks>
         /// Uses "Default" platform
         /// </remarks>
-        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, PropertyEvaluator evaluator, IList<string> values)
+        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, ConfigHierarchyLevelRange range, PropertyEvaluator evaluator, IList<string?> values)
         {
             EvaluatePropertyValues(DefaultPlatform, category, sectionName, propertyKey, range, evaluator, values);
         }
@@ -152,7 +152,7 @@ namespace UE4Config.Hierarchy
         /// <remarks>
         /// Uses "Default" platform
         /// </remarks>
-        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, PropertyEvaluator evaluator, IList<string> values)
+        public void EvaluatePropertyValues(string category, string sectionName, string propertyKey, PropertyEvaluator evaluator, IList<string?> values)
         {
             EvaluatePropertyValues(category, sectionName, propertyKey, ConfigHierarchyLevelRange.All(), evaluator, values);
         }

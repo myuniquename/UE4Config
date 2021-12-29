@@ -84,6 +84,6 @@ namespace UE4Config.Hierarchy
             return m_LevelsAscending;
         }
 
-        private static ConfigHierarchyLevel[] m_LevelsAscending = null;
+        private static ConfigHierarchyLevel[]? m_LevelsAscending = null;
     }
 }

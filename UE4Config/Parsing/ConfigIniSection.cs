@@ -6,18 +6,18 @@ namespace UE4Config.Parsing
 {
     public class ConfigIniSection
     {
-        public string Name = null;
+        public string? Name = null;
         public List<IniToken> Tokens = new List<IniToken>();
         public LineEnding LineEnding;
 
         /// <summary>
         /// Trimmed whitespace characters prefixing this sections header line
         /// </summary>
-        public string LineWastePrefix = null;
+        public string? LineWastePrefix = null;
         /// <summary>
         /// Trimmed whitespace characters suffixing this sections header line
         /// </summary>
-        public string LineWasteSuffix = null;
+        public string? LineWasteSuffix = null;
 
         public ConfigIniSection() { }
 
@@ -60,7 +60,7 @@ namespace UE4Config.Parsing
             }
         }
 
-        public IniToken GetLastToken()
+        public IniToken? GetLastToken()
         {
             if (Tokens.Count > 0)
             {

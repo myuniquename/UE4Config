@@ -2,13 +2,13 @@
 {
     public struct TextLine
     {
-        public TextLine(string content = null, LineEnding lineEnding = LineEnding.None)
+        public TextLine(string? content = null, LineEnding lineEnding = LineEnding.None)
         {
             Content = content;
             LineEnding = lineEnding;
         }
 
-        public string Content;
+        public string? Content;
         public LineEnding LineEnding;
 
         public bool IsNull => Content == null;

@@ -12,7 +12,7 @@ namespace UE4Config.Parsing
     /// </remarks>
     public class ConfigIni
     {
-        public string Name = null;
+        public string? Name = null;
         public List<ConfigIniSection> Sections = new List<ConfigIniSection>();
 
         public ConfigIni() { }
@@ -52,7 +52,7 @@ namespace UE4Config.Parsing
 
         public void Read(TextReader reader)
         {
-            ConfigIniSection currentSection = null;
+            ConfigIniSection? currentSection = null;
             if (Sections.Count > 0)
             {
                 currentSection = Sections[Sections.Count - 1];
@@ -258,9 +258,11 @@ namespace UE4Config.Parsing
 
                 section.Write(writer);
             }
+
+            writer.Flush();
         }
 
-        public void EvaluatePropertyValues(string sectionName, string propertyKey, IList<string> values, PropertyEvaluator evaluator = null)
+        public void EvaluatePropertyValues(string sectionName, string propertyKey, IList<string?> values, PropertyEvaluator? evaluator = null)
         {
             evaluator = PropertyEvaluator.CustomOrDefault(evaluator);
             evaluator.EvaluatePropertyValues(this, sectionName, propertyKey, values);
